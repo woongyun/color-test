@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>색깔 성격 유형 테스트</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "맑은 고딕", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f7;
+    }
+    .ct-container {
+      max-width: 640px;
+      margin: 2rem auto;
+      padding: 1.5rem;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+    .ct-title {
+      font-size: 1.6rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    .ct-subtitle {
+      font-size: 0.9rem;
+      color: #555;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .ct-question {
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    .ct-progress {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 0.5rem;
+      text-align: right;
+    }
+    .ct-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .ct-option-btn {
+      border: 1px solid #ddd;
+      padding: 0.8rem 1rem;
+      border-radius: 999px;
+      background: #fafafa;
+      cursor: pointer;
+      font-size: 0.95rem;
+      text-align: left;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+    }
+    .ct-option-btn:hover {
+      background: #f0f4ff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      transform: translateY(-1px);
+    }
+    .ct-center {
+      text-align: center;
+    }
+    .ct-start-btn,
+    .ct-restart-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 0.8rem 1.6rem;
+      font-size: 1rem;
+      cursor: pointer;
+      background: #4c6fff;
+      color: #fff;
+      display: inline-block;
+      margin-top: 1rem;
+      transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+    }
+    .ct-start-btn:hover,
+    .ct-restart-btn:hover {
+      background: #3750e0;
+      box-shadow: 0 4px 12px rgba(76, 111, 255, 0.35);
+      transform: translateY(-1px);
+    }
+    .ct-result-badge {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 1rem auto;
+      border: 4px solid #eee;
+    }
+    .ct-result-title {
+      font-size: 1.3rem;
+      margin-bottom: 0.3rem;
+      text-align: center;
+    }
+    .ct-result-keyword {
+      font-size: 0.95rem;
+      color: #777;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .ct-result-body {
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: #444;
+      white-space: pre-line;
+    }
+    .ct-small-note {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="ct-container" id="colorTest">
+    <h1 class="ct-title">색깔 성격 유형 테스트</h1>
+    <p class="ct-subtitle">
+      직감대로 고르기만 하면, 지금 당신과 가장 가까운 색깔 성격 유형을 간단히 볼 수 있다.<br/>
+      너무 깊게 고민하지 말고, 처음 떠오르는 선택지를 골라보면 더 재미있다.
+    </p>
+
+    <!-- 시작 화면 -->
+    <div id="ct-start-screen" class="ct-center">
+      <button class="ct-start-btn" id="ct-start-btn">테스트 시작하기</button>
+      <p class="ct-small-note">※ 질문은 총 12문항이다.</p>
+    </div>
+
+    <!-- 질문 영역 -->
+    <div id="ct-quiz-screen" style="display:none;">
+      <div class="ct-progress" id="ct-progress"></div>
+      <div class="ct-question" id="ct-question-text"></div>
+      <div class="ct-options" id="ct-options"></div>
+    </div>
+
+    <!-- 결과 영역 -->
+    <div id="ct-result-screen" style="display:none;">
+      <div class="ct-result-badge" id="ct-result-badge"></div>
+      <h2 class="ct-result-title" id="ct-result-title"></h2>
+      <div class="ct-result-keyword" id="ct-result-keyword"></div>
+      <div class="ct-result-body" id="ct-result-body"></div>
+      <div class="ct-center">
+        <button class="ct-restart-btn" id="ct-restart-btn">다시 테스트하기</button>
+      </div>
+      <p class="ct-small-note">
+        이 테스트는 가볍게 즐기는 성격 이미지 체크용이다.<br/>
+        너무 진지하게 받아들이지 말고, 재미로 참고만 하면 좋다.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // 질문·선택지 (12문항, 한국어)
+    // =========================
+    const ctQuestions = [
+      {
+        text: "처음 보는 사람이 많은 모임에 초대받았다. 가장 가까운 반응은?",
+        options: [
+          { text: "새로운 사람 좋다. 분위기만 괜찮으면 금방 섞여서 놀 것 같다.", color: "red" },
+          { text: "조금 긴장되지만, 새로운 이야기 듣는 건 기대된다.", color: "yellow" },
+          { text: "어색한 분위기는 부담스럽다. 꼭 필요하지 않으면 안 가고 싶다.", color: "blue" },
+          { text: "친한 사람이 같이 간다면 괜찮다. 혼자 가는 건 망설여진다.", color: "green" }
+        ]
+      },
+      {
+        text: "오랜만에 하루 종일 비어 있는 휴일이다. 가장 끌리는 계획은?",
+        options: [
+          { text: "그때그때 떠오르는 대로 여기저기 다니면서 즉흥적으로 즐긴다.", color: "red" },
+          { text: "가보고 싶었던 카페나 전시, 동네 산책 등 가볍게 움직인다.", color: "yellow" },
+          { text: "집에서 책·영상·음악 등 혼자만의 루틴을 편하게 즐긴다.", color: "blue" },
+          { text: "가족, 파트너, 가까운 친구와 조용하게 시간을 나눈다.", color: "green" }
+        ]
+      },
+      {
+        text: "어려운 일을 맡게 되었을 때, 당신의 기본 태도에 가장 가까운 것은?",
+        options: [
+          { text: "일단 시작하고 보면서 부딪혀 가는 편이다.", color: "red" },
+          { text: "어떻게 하면 재밌게, 효율적으로 할 수 있을지부터 떠올려 본다.", color: "yellow" },
+          { text: "먼저 자료를 충분히 보고 계획을 세운 뒤에 움직인다.", color: "blue" },
+          { text: "주변 사람들과 상의하면서 모두에게 무리가 덜 가는 방식부터 고민한다.", color: "green" }
+        ]
+      },
+      {
+        text: "주변 사람들은 주로 당신을 어떻게 표현하는 편인가?",
+        options: [
+          { text: "결단력 있다, 추진력 좋다, 할 말은 하는 사람이다.", color: "red" },
+          { text: "분위기 메이커, 같이 있으면 웃음이 많아진다.", color: "yellow" },
+          { text: "차분하다, 믿음직스럽다, 꼼꼼하다.", color: "blue" },
+          { text: "상냥하다, 배려 깊다, 편하게 이야기할 수 있다.", color: "green" }
+        ]
+      },
+      {
+        text: "갑작스럽게 잡혀 있던 중요한 일정이 취소되었다. 당신의 속마음은?",
+        options: [
+          { text: "그럼 다른 걸 해보지 뭐. 바로 대체 계획을 생각한다.", color: "red" },
+          { text: "어라? 아쉽지만, 오히려 자유 시간이 생겼다고 생각한다.", color: "yellow" },
+          { text: "이왕이면 예정대로 진행됐으면 좋았을 것 같다.", color: "blue" },
+          { text: "다른 사람들은 괜찮을까, 누가 곤란해졌는지 먼저 떠오른다.", color: "green" }
+        ]
+      },
+      {
+        text: "팀으로 무언가를 진행할 때, 자연스럽게 맡게 되는 역할에 가장 가까운 것은?",
+        options: [
+          { text: "전체 방향을 정하고 밀어붙이는 리더 역할.", color: "red" },
+          { text: "아이디어를 제안하고 분위기를 부드럽게 만드는 역할.", color: "yellow" },
+          { text: "일정을 정리하고 체크리스트를 관리하는 역할.", color: "blue" },
+          { text: "뒤에서 빠진 사람 없는지 살피며 도와주는 역할.", color: "green" }
+        ]
+      },
+      {
+        text: "스트레스를 많이 받았을 때, 당신이 가장 자주 하는 방식은?",
+        options: [
+          { text: "운동, 쇼핑, 게임 등 무언가에 확 몰입해 한 번에 풀려고 한다.", color: "red" },
+          { text: "친한 사람과 수다 떨면서 웃고 떠들다 보면 어느 순간 가벼워진다.", color: "yellow" },
+          { text: "혼자 있는 시간을 확보하고, 조용히 생각을 정리한다.", color: "blue" },
+          { text: "누군가를 도와주거나 작은 정리를 하면서 마음을 가라앉힌다.", color: "green" }
+        ]
+      },
+      {
+        text: "새로운 아이디어가 떠올랐을 때, 당신의 패턴에 가장 가까운 것은?",
+        options: [
+          { text: "일단 시도한다. 해보면서 수정하는 쪽이 편하다.", color: "red" },
+          { text: "주변 사람에게 이야기해 보고 반응을 보면서 키워 나간다.", color: "yellow" },
+          { text: "현실적인 부분, 리스크를 먼저 따져 본다.", color: "blue" },
+          { text: "누구에게 도움이 될지, 주변에 어떤 영향을 줄지 떠올려 본다.", color: "green" }
+        ]
+      },
+      {
+        text: "누군가와 의견이 크게 갈릴 때, 당신이 가장 먼저 떠올리는 것은?",
+        options: [
+          { text: "내 입장을 분명하게 이야기해야 한다.", color: "red" },
+          { text: "이야기를 잘 풀면 중간 지점을 찾을 수 있지 않을까?", color: "yellow" },
+          { text: "감정보다 사실과 논리를 기준으로 정리해 보고 싶다.", color: "blue" },
+          { text: "상대가 상처받지 않도록 말하는 방식부터 신경 쓴다.", color: "green" }
+        ]
+      },
+      {
+        text: "다음 중 가장 듣고 싶은 칭찬은 어느 쪽에 가깝나?",
+        options: [
+          { text: "결단력이 좋다, 믿고 맡길 수 있다.", color: "red" },
+          { text: "센스 있다, 같이 있으면 즐겁다.", color: "yellow" },
+          { text: "꼼꼼하다, 항상 믿음이 간다.", color: "blue" },
+          { text: "따뜻하다, 너라서 편안하다.", color: "green" }
+        ]
+      },
+      {
+        text: "일이 너무 많아졌을 때, 당신의 속마음과 가장 가까운 것은?",
+        options: [
+          { text: "힘들긴 해도, 어떻게든 해내고 나면 성취감이 크다.", color: "red" },
+          { text: "중간중간 재미 요소를 넣어서 버텨야겠다.", color: "yellow" },
+          { text: "우선순위부터 정리해서 차근차근 처리해야 마음이 놓인다.", color: "blue" },
+          { text: "나만 힘든 게 아니라 주변 사람도 힘들지 않을까 걱정된다.", color: "green" }
+        ]
+      },
+      {
+        text: "처음 가보는 낯선 장소에 혼자 도착했다. 가장 자연스러운 행동은?",
+        options: [
+          { text: "일단 돌아다니면서 직접 몸으로 익힌다.", color: "red" },
+          { text: "재밌어 보이는 곳부터 구경하면서 사진도 남긴다.", color: "yellow" },
+          { text: "안내문이나 지도를 확인하고 구조를 먼저 파악한다.", color: "blue" },
+          { text: "혹시 모를 상황에 대비해 주변 사람, 출구, 화장실 위치 등을 살핀다.", color: "green" }
+        ]
+      }
+    ];
+
+    // =========================
+    // 결과 데이터 (한국어)
+    // =========================
+    const ctResults = {
+      red: {
+        name: "레드 타입",
+        keyword: "행동력 · 직설적 · 추진력",
+        colorCode: "#ff4b4b",
+        description:
+          "레드 타입인 당신은 생각보다 행동이 먼저 나가는 편이다.\n" +
+          "해야 할 일 앞에서 오래 망설이기보다는, 움직이면서 판단을 조정하는 스타일에 가깝다.\n\n" +
+          "주변 사람 눈에는 ‘결단력 좋다’, ‘믿고 일을 맡길 수 있다’라는 인상을 주는 경우가 많다.\n" +
+          "분위기가 흐릿할 때 방향을 잡아 주는 역할도 잘해 내는 편이다.\n\n" +
+          "다만, 말과 행동이 솔직하게 나가는 만큼, 때로는 상대가 받아들이기 버거울 정도로 강하게 느껴질 수 있다.\n" +
+          "속마음은 나쁘지 않았는데도, 표현이 거칠게 들리면 오해가 생기기 쉽다.\n\n" +
+          "한 번 더 숨을 고르고, 상대의 속도와 기분을 확인하는 여유를 가져 보면 좋다.\n" +
+          "당신의 직진 에너지는, 방향만 조금 조율되면 주변을 크게 움직이는 강한 추진력이 된다."
+      },
+      yellow: {
+        name: "옐로우 타입",
+        keyword: "호기심 · 유머 · 분위기 메이커",
+        colorCode: "#ffd64b",
+        description:
+          "옐로우 타입인 당신은 ‘재밌는 것’과 ‘새로운 자극’에 유난히 잘 반응하는 사람이다.\n" +
+          "조금만 친해져도 농담을 주고받고, 어색한 분위기를 자연스럽게 풀어 버리는 능력이 있다.\n\n" +
+          "아이디어도 풍부해서, 고정관념에 갇히지 않고 여러 가능성을 떠올리는 데 강하다.\n" +
+          "주변 사람 입장에서는, 당신과 함께 있을 때 시간이 빨리 가는 느낌을 받기 쉽다.\n\n" +
+          "한편으로는 흥미가 옮겨가는 속도도 빠른 편이라, 시작은 화려하지만 끝까지 끌고 가는 일이 부담스러울 때도 있다.\n" +
+          "‘나답게’ 꾸준함을 유지하려면, 작은 단계로 쪼개서 한 번에 다 하려고 하지 않는 것이 도움이 된다.\n\n" +
+          "옐로우의 밝은 에너지는 많은 사람에게 힘이 된다.\n" +
+          "당신이 즐겁게 몰입할 수 있는 무대를 꾸준히 만들어 주면, 그 자체로 주변까지 함께 빛나게 만든다."
+      },
+      blue: {
+        name: "블루 타입",
+        keyword: "차분함 · 신뢰감 · 꼼꼼함",
+        colorCode: "#4b7dff",
+        description:
+          "블루 타입인 당신은 쉽게 흥분하거나 휘둘리기보다는, 한 걸음 떨어져서 상황을 바라보는 힘이 있다.\n" +
+          "작은 부분도 그냥 넘기지 않고, 정확성과 완성도를 중요하게 여기는 편이다.\n\n" +
+          "그래서 함께 일하는 사람 입장에서는 ‘믿고 맡길 수 있다’, ‘실수가 적다’라는 인상을 받기 쉽다.\n" +
+          "복잡한 내용을 정리하거나, 중요한 결정을 검토할 때 당신의 시선은 큰 도움이 된다.\n\n" +
+          "하지만 신중한 성향 때문에, 스스로에게 기대하는 기준이 너무 높아질 때가 있다.\n" +
+          "완벽하지 않으면 시작하기 어려워지고, 시도하기 전에 이미 지쳐 버리는 느낌을 받을 수도 있다.\n\n" +
+          "‘완벽함’보다는 ‘점진적인 개선’ 쪽으로 기준을 살짝 내려 두면 좋다.\n" +
+          "당신의 차분함과 분석력은, 한 번 움직이기 시작하면 꾸준히 힘을 발휘하는 강력한 장점이다."
+      },
+      green: {
+        name: "그린 타입",
+        keyword: "배려 · 조화 · 안정감",
+        colorCode: "#4bbf7d",
+        description:
+          "그린 타입인 당신은 사람과 사람 사이의 온도에 민감한 편이다.\n" +
+          "누군가 조금만 힘들어 보이면 자연스럽게 눈길이 가고, 조용히 도와주고 싶다는 마음이 먼저 든다.\n\n" +
+          "그래서 함께 있는 사람들은 ‘마음이 편해진다’, ‘괜히 기대고 싶어진다’라는 느낌을 받기 쉽다.\n" +
+          "티를 크게 내지 않더라도, 당신은 주변을 안정시키는 역할을 자주 맡는다.\n\n" +
+          "다만, 상대를 배려하는 마음이 강할수록, 정작 자신의 감정과 필요는 뒤로 미루는 버릇이 생기기 쉽다.\n" +
+          "‘이 정도는 괜찮다’라고 넘기다 보면, 어느 순간 혼자만 지쳐 있는 자신을 발견할 수도 있다.\n\n" +
+          "가끔은 ‘지금 내 마음은 어떤지’를 점검하고, 솔직하게 표현하는 연습이 필요하다.\n" +
+          "당신의 따뜻함은, 스스로를 포함해 모두를 편안하게 만드는 소중한 자원이다."
+      }
+    };
+
+    // =========================
+    // 상태 관리
+    // =========================
+    let ctCurrentIndex = 0;
+    let ctScores = {
+      red: 0,
+      yellow: 0,
+      blue: 0,
+      green: 0
+    };
+
+    // =========================
+    // DOM 요소
+    // =========================
+    const elStartScreen = document.getElementById("ct-start-screen");
+    const elQuizScreen = document.getElementById("ct-quiz-screen");
+    const elResultScreen = document.getElementById("ct-result-screen");
+    const elStartBtn = document.getElementById("ct-start-btn");
+    const elRestartBtn = document.getElementById("ct-restart-btn");
+    const elProgress = document.getElementById("ct-progress");
+    const elQuestionText = document.getElementById("ct-question-text");
+    const elOptions = document.getElementById("ct-options");
+    const elResultBadge = document.getElementById("ct-result-badge");
+    const elResultTitle = document.getElementById("ct-result-title");
+    const elResultKeyword = document.getElementById("ct-result-keyword");
+    const elResultBody = document.getElementById("ct-result-body");
+
+    // =========================
+    // 함수
+    // =========================
+    function ctStartTest() {
+      ctCurrentIndex = 0;
+      ctScores = { red: 0, yellow: 0, blue: 0, green: 0 };
+      elStartScreen.style.display = "none";
+      elResultScreen.style.display = "none";
+      elQuizScreen.style.display = "block";
+      ctRenderQuestion();
+    }
+
+    function ctRenderQuestion() {
+      const total = ctQuestions.length;
+      const current = ctCurrentIndex + 1;
+
+      if (ctCurrentIndex >= total) {
+        ctShowResult();
+        return;
+      }
+
+      const q = ctQuestions[ctCurrentIndex];
+      elProgress.textContent = `${current} / ${total} 문항`;
+      elQuestionText.textContent = q.text;
+
+      elOptions.innerHTML = "";
+      q.options.forEach((opt) => {
+        const btn = document.createElement("button");
+        btn.className = "ct-option-btn";
+        btn.textContent = opt.text;
+        btn.addEventListener("click", () => {
+          ctHandleAnswer(opt.color);
+        });
+        elOptions.appendChild(btn);
+      });
+    }
+
+    function ctHandleAnswer(color) {
+      if (ctScores[color] != null) {
+        ctScores[color] += 1;
+      }
+      ctCurrentIndex += 1;
+      ctRenderQuestion();
+    }
+
+    function ctShowResult() {
+      elQuizScreen.style.display = "none";
+      elResultScreen.style.display = "block";
+
+      // 최고 점수 색상 계산
+      let maxScore = -1;
+      let bestColors = [];
+      for (const key in ctScores) {
+        const score = ctScores[key];
+        if (score > maxScore) {
+          maxScore = score;
+          bestColors = [key];
+        } else if (score === maxScore) {
+          bestColors.push(key);
+        }
+      }
+
+      const mainColor = bestColors[0];
+      const data = ctResults[mainColor];
+
+      elResultBadge.style.background = data.colorCode;
+      elResultTitle.textContent = data.name;
+
+      if (bestColors.length > 1) {
+        elResultKeyword.textContent =
+          data.keyword + " · 다른 색깔의 특징도 은근히 섞여 있는 타입이다.";
+      } else {
+        elResultKeyword.textContent = data.keyword;
+      }
+
+      elResultBody.textContent = data.description;
+    }
+
+    // =========================
+    // 이벤트 등록
+    // =========================
+    elStartBtn.addEventListener("click", ctStartTest);
+    elRestartBtn.addEventListener("click", ctStartTest);
+  </script>
+</body>
+</html>
